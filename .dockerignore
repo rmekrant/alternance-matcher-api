@@ -1,0 +1,14 @@
+# Secrets : la clé est fournie au lancement du conteneur, jamais copiée dans l'image
+.env
+
+# Inutile dans l'image
+.venv/
+.git/
+.github/
+tests/
+__pycache__/
+*.pyc
+.pytest_cache/
+pytest.ini
+requirements-dev.txt
+README.md
