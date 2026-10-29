@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+
+from app.llm import LLMAnalyzer, get_analyzer
 from app.schemas import AnalyzeRequest, AnalyzeResponse
 
 app = FastAPI(
@@ -12,13 +14,10 @@ app = FastAPI(
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
+
 @app.post("/analyze", response_model=AnalyzeResponse)
-def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
-    # Réponse provisoire : sera remplacée par l'appel au LLM à l'étape 4
-    return AnalyzeResponse(
-        score=50,
-        matched_skills=["Python"],
-        missing_skills=["Docker"],
-        summary="Réponse de test.",
-        advice=["Ajouter un projet Docker au CV."],
-    )
+def analyze(
+    request: AnalyzeRequest,
+    analyzer: LLMAnalyzer = Depends(get_analyzer),
+) -> AnalyzeResponse:
+    return analyzer.analyze(request)
