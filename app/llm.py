@@ -23,6 +23,12 @@ logger = logging.getLogger(__name__)
 # Modèle utilisé : modifiable via le .env sans toucher au code
 MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
 
+# Pire cas : 2 tentatives de 25 s + une courte pause entre les deux, soit environ 51 s.
+# Ça reste sous les 60 s du timeout de l'app mobile : c'est donc le backend qui
+# répond 504 avec un message clair, et pas le client qui abandonne sans savoir pourquoi.
+LLM_TIMEOUT_SECONDS = 25.0
+LLM_MAX_RETRIES = 1
+
 SYSTEM_PROMPT = """Tu es un recruteur technique expérimenté qui évalue des candidatures en alternance.
 Tu compares une offre d'alternance au CV d'un candidat.
 
@@ -101,4 +107,5 @@ def get_analyzer() -> LLMAnalyzer:
     # On vérifie la clé avant de créer le client, pour renvoyer une erreur claire
     if not os.getenv("ANTHROPIC_API_KEY"):
         raise LLMConfigError()
-    return LLMAnalyzer(Anthropic())
+    client = Anthropic(timeout=LLM_TIMEOUT_SECONDS, max_retries=LLM_MAX_RETRIES)
+    return LLMAnalyzer(client)

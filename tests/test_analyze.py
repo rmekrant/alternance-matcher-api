@@ -3,6 +3,7 @@ import httpx
 import pytest
 from types import SimpleNamespace
 
+from app.llm import LLM_MAX_RETRIES, LLM_TIMEOUT_SECONDS, get_analyzer
 from tests.conftest import VALID_ANALYSIS, VALID_REQUEST, tool_use_response
 
 # Fausse requête HTTP, nécessaire pour construire les exceptions du SDK anthropic
@@ -126,3 +127,16 @@ def test_analyze_returns_503_when_api_key_is_missing(client, monkeypatch):
 
     assert response.status_code == 503
     assert "clé API" in response.json()["detail"]
+
+
+# --- Configuration du client Claude ---
+
+
+def test_get_analyzer_limits_timeout_and_retries(monkeypatch):
+    # Fausse clé : on vérifie seulement la configuration, aucun appel n'est fait
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+
+    analyzer = get_analyzer()
+
+    assert analyzer.client.timeout == LLM_TIMEOUT_SECONDS
+    assert analyzer.client.max_retries == LLM_MAX_RETRIES
